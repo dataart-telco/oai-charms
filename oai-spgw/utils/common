@@ -80,31 +80,31 @@ check_epc_connection(){
 
 }
 
+get_eth_ip(){
+  echo `ifconfig $1 | egrep -o "inet addr:[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+" | egrep -o "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+"`
+}
+
 user_conf(){
   juju-log "Setting up the config option chose by the user or the default ones"
   HOSTNAME=`hostname`
-
-  # update hss
-  hss_hostname=${hss_fqdn%%.*}
-  if [ -z "$hss_hostname" ]; then
-    hss_hostname='hss'
-  fi
 
   sed -r -i "/IPV4_LIST/,/\);/ s-\"[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+/[0-9]+\",-\"$ipv4_list_start\",-" $epc_conf_path/spgw.conf
   sed -r -i "/IPV4_LIST/,/\);/ s-\"[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+/[0-9]+\" -\"$ipv4_list_end\" -" $epc_conf_path/spgw.conf
 
   juju-log "Setting up network configuration in the epc.conf file"
 
-  ipv4=`ifconfig $iface | egrep -o "inet addr:[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+" | egrep -o "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+"`
+  sgw_ipv4=`get_eth_ip $sgw_iface`
+  pgw_ipv4=`get_eth_ip $pgw_iface`
 
   #INTERFACES
-  sed -r -i "/SGW_INTERFACE_NAME_FOR_S11/ s/\".*\";/\"$iface\";/" $epc_conf_path/spgw.conf
-  sed -r -i "/SGW_IPV4_ADDRESS_FOR_S11/ s/\".*\";/\"$ipv4/24\";/" $epc_conf_path/spgw.conf
+  sed -r -i "/SGW_INTERFACE_NAME_FOR_S11/ s/\".*\";/\"$sgw_iface\";/" $epc_conf_path/spgw.conf
+  sed -r -i "/SGW_IPV4_ADDRESS_FOR_S11/ s-\".*\";-\"$sgw_ipv4/24\";-" $epc_conf_path/spgw.conf
 
-  sed -r -i "/SGW_INTERFACE_NAME_FOR_S1U_S12_S4_UP/ s/\".*\";/\"$iface\";/" $epc_conf_path/spgw.conf
-  sed -r -i "/PGW_INTERFACE_NAME_FOR_SGI/ s/\".*\"/\"$iface\"/" $epc_conf_path/spgw.conf
-  sed -r -i "/SGW_IPV4_ADDRESS_FOR_S1U_S12_S4_UP/ s-\".*\"-\"$ipv4/24\"-" $epc_conf_path/spgw.conf
-  sed -r -i "/PGW_IPV4_ADDRESS_FOR_SGI/ s-\".*\"-\"$ipv4/24\"-" $epc_conf_path/spgw.conf
+  sed -r -i "/SGW_INTERFACE_NAME_FOR_S1U_S12_S4_UP/ s/\".*\";/\"$sgw_iface\";/" $epc_conf_path/spgw.conf
+  sed -r -i "/SGW_IPV4_ADDRESS_FOR_S1U_S12_S4_UP/ s-\".*\";-\"$sgw_ipv4/24\";-" $epc_conf_path/spgw.conf
+
+  sed -r -i "/PGW_INTERFACE_NAME_FOR_SGI/ s/\".*\"/\"$pgw_iface\"/" $epc_conf_path/spgw.conf
+  sed -r -i "/PGW_IPV4_ADDRESS_FOR_SGI/ s-\".*\"-\"$pgw_ipv4/24\"-" $epc_conf_path/spgw.conf
 
   #DNS
   sed -r -i "/DEFAULT_DNS_IPV4_ADDRESS/ s/\".*\"/\"$DEFAULT_DNS_IPV4_ADDRESS\"/" $epc_conf_path/spgw.conf

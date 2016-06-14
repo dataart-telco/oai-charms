@@ -8,7 +8,12 @@ options:
      default: "head"   
      description: get a specific revison from the openair-cn git repository. 
      type: string
-   eth:
+   sgw-eth:
+     default: "eth0"
+     description: |
+       This is usefull especially when you are in manual environment so you have your own machines. The default value is eth0. NO empty value.
+     type: string
+   pgw-eth:
      default: "eth0"
      description: |
        This is usefull especially when you are in manual environment so you have your own machines. The default value is eth0. NO empty value.

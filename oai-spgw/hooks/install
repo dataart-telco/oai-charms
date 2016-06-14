@@ -62,13 +62,13 @@ juju_install_kernel(){
     if [[ $REQUIRED_KERNEL_IS_INSTALLED == false ]]; then
         # a way to avoid looping for lxc env.
         if [ "$(cat $CHARM_DIR/.reboot)" != "reboot" ]; then  
-        echo "reboot" > $CHARM_DIR/.reboot 
-        juju-log "installing the required kernel and reboot"
-        status-set maintenance "installing the required kernel and rebooting"
-        install_required_kernel
-            juju-reboot --now
+          echo "reboot" > $CHARM_DIR/.reboot 
+          juju-log "installing the required kernel and reboot"
+          status-set maintenance "installing the required kernel and rebooting"
+          install_required_kernel
+          juju-reboot --now
         else 
-        juju-log "Can't install the kernel (probably in LXC), make sure that required kernel is installed (3.19)"
+          juju-log "Can't install the kernel (probably in LXC), make sure that required kernel is installed (3.19)"
         fi 
         #if we reboot now, the install is blocked here and reschedule after the reboot
         #and xtables will be installed
@@ -139,6 +139,14 @@ configure_spgw(){
   cp $openair_path/ETC/spgw.conf $epc_conf_path/spgw.conf
 }
 
+configure_network(){
+    local eth=$1
+    local file=/etc/network/interfaces.d/${eth}.cfg
+    cp ./${TEMPLATE_DIR}/eth1_tpl.cfg $file
+
+    sed -i -e "s/eth1/$eth/g" $file
+}
+
 set -eux
 
 export DEBIAN_FRONTEND=noninteractive
@@ -155,6 +163,9 @@ echo "$revision" > $CHARM_DIR/.revision
 status-set maintenance "Fetching and installing Openair4G"
 
 update_hostname
+condfigure_network `config-get sgw-eth`
+condfigure_network `config-get pgw-eth`
+
 install_packages
 clone_repo
 juju_install_kernel
@@ -164,4 +175,4 @@ conigure_hosts
 build_spgw
 configure_spgw
 
-status-set blocked "Waiting for active connection with MME to actually run SPGW"
+status-set active "Ready to start"

@@ -219,3 +219,7 @@ get_ip_address(){
   fi 
 
 }
+
+get_eth_ip(){
+  echo `ifconfig $1 | egrep -o "inet addr:[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+" | egrep -o "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+"`
+}

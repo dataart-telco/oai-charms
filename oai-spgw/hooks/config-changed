@@ -46,7 +46,8 @@ if [ "$(config-get revision)" != "$(cat $CHARM_DIR/.revision)" ]; then
 fi
 
 
-iface=`config-get eth`
+sgw_iface=`config-get sgw-eth`
+pgw_iface=`config-get pgw-eth`
 ipv4_list_start=`config-get ipv4_list_start`
 ipv4_list_end=`config-get ipv4_list_end`
 ipv6_list=`config-get ipv6_list`
@@ -58,12 +59,4 @@ mme_s11_ipv4=`cat $CHARM_DIR/.mme_s11_ipv4`
 user_conf
 
 service spgw stop || true
-
-if [ -z "$(relation-ids mee)" ]; then
-    juju-log "SWG is built, but is waiting for active connection to gather the last info"
-    juju-log "no MME is found"
-    status-set blocked "Waiting for active connection with MME to actually run SPGW"
-else
-    juju-log "Relation with MME exists and it is running so run SGW software"
-    $CHARM_DIR/hooks/start
-fi
+$CHARM_DIR/hooks/start

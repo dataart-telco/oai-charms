@@ -141,6 +141,14 @@ configure_hss(){
   $build_run_scripts/check_hss_s6a_certificate $freediameter_conf_path $fqdn
 }
 
+configure_network(){
+    local eth=$1
+    local file=/etc/network/interfaces.d/${eth}.cfg
+    cp ./${TEMPLATE_DIR}/eth1_tpl.cfg $file
+
+    sed -i -e "s/eth1/$eth/g" $file
+}
+
 set -eux
 
 export DEBIAN_FRONTEND=noninteractive
@@ -158,6 +166,8 @@ echo "$revision" > $CHARM_DIR/.revision
 juju-log "Fetching and installing OpenAirInterface HSS"
 
 update_hostname
+condfigure_network `config-get eth`
+
 install_packages
 clone_repo
 juju_install_kernel

@@ -39,5 +39,7 @@ source $CHARM_DIR/utils/common
 juju-log "Setting up SPGW relation info for MME"
 relation-set  spgw_hostname=`hostname --fqdn`
 
-spgw_s11_ipv4=`unit-get private-address`
-relation-set spgw_s11_ipv4=$spgw_s11_ipv4
+sgw_iface=`config-get sgw-eth`
+sgw_ipv4=`get_eth_ip $sgw_iface`
+
+relation-set spgw_s11_ipv4=$sgw_ipv4
