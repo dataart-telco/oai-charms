@@ -37,8 +37,6 @@
 set -eux
 source $CHARM_DIR/utils/common
 
-configure_network
-
 if [ -n "$(relation-ids db)" ]; then
    juju-log "Running HSS"
    service oai_hss restart || service oai_hss start

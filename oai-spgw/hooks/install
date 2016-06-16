@@ -140,11 +140,17 @@ configure_spgw(){
 }
 
 configure_network(){
+    #allow dhcp
     local eth=$1
-    local file=/etc/network/interfaces.d/${eth}.cfg
-    cp ./${TEMPLATE_DIR}/eth1_tpl.cfg $file
-
+    local file=/etc/network/interfaces.d/0${eth}.cfg
+    cp ./files/eth1_tpl.cfg $file
     sed -i -e "s/eth1/$eth/g" $file
+
+    #prevent dhcp gateway
+    local hook=/etc/dhcp/dhclient-enter-hooks.d/net-${eth}
+    cp ./files/dhclient_hook_tpl $hook
+    sed -i -e "s/eth1/$eth/g" $hook
+    chmod +x $hook
 }
 
 set -eux
@@ -163,8 +169,8 @@ echo "$revision" > $CHARM_DIR/.revision
 status-set maintenance "Fetching and installing Openair4G"
 
 update_hostname
-condfigure_network `config-get sgw-eth`
-condfigure_network `config-get pgw-eth`
+configure_network `config-get sgw-eth`
+configure_network `config-get pgw-eth`
 
 install_packages
 clone_repo

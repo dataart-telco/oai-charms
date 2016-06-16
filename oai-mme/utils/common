@@ -93,8 +93,7 @@ user_conf(){
   HOSTNAME=`hostname`
 
   #update sgw 
-  
-  sed -r -i "/SGW_IPV4_ADDRESS_FOR_S11/ s/\".*\"/\"$spgw_s11_ipv4\"/" $epc_conf_path/mme.conf
+  sed -r -i "/SGW_IPV4_ADDRESS_FOR_S11/ s-\".*\"-\"$spgw_s11_ipv4\"-" $epc_conf_path/mme.conf
 
   # update hss
   hss_hostname=${hss_fqdn%%.*}
