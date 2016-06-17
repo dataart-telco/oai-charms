@@ -36,6 +36,15 @@ set -ex
 source $CHARM_DIR/utils/common
 set_env_paths
 
+DEBUG_RESTART=`relation-get DEBUG_RESTART`
+
+if [ -n "$DEBUG_RESTART" ]; then
+  juju-log "mme restart is requested"
+  service mme stop || true
+  $CHARM_DIR/hooks/start
+  exit 0
+fi
+
 TAC=`relation-get TAC`
 if [ -z "$TAC" ]; then
    juju-log "Data not available yet, exit silently"
