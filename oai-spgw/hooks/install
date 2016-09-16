@@ -107,6 +107,26 @@ clone_repo(){
 
 }
 
+patch_sources(){
+    git apply --directory $openair_path $CHARM_DIR/files/s11_sgw_session_manager.patch
+}
+
+build_spgw(){
+  status-set maintenance "Building spgw"
+  # workaround: need to execute build_mme before build_spgw
+  $build_run_scripts/build_mme -i -f
+  $build_run_scripts/build_spgw -i -f
+  $build_run_scripts/build_spgw -j -f
+  $build_run_scripts/build_spgw
+}
+
+configure_spgw(){
+  cp $CHARM_DIR/files/spgw.conf /etc/init/spgw.conf
+
+  mkdir -p $epc_conf_path
+  cp $openair_path/ETC/spgw.conf $epc_conf_path/spgw.conf
+}
+
 update_hostname(){
   HOSTNAME=`echo $JUJU_UNIT_NAME | sed 's|/|-|'`
   echo "$HOSTNAME" > /etc/hostname
@@ -121,22 +141,6 @@ conigure_hosts(){
      echo 127.0.0.1 `hostname` spgw >> /etc/hosts
 #     echo 127.0.0.1 `hostname`.$realm `hostname` spgw >> /etc/hosts
 #  fi
-}
-
-build_spgw(){
-  status-set maintenance "Building spgw"
-  # workaround: need to execute build_mme before build_spgw
-  $build_run_scripts/build_mme -i -f
-  $build_run_scripts/build_spgw -i -f
-  $build_run_scripts/build_spgw -j -f
-  $build_run_scripts/build_spgw
-}
-
-configure_spgw(){
-  cp $CHARM_DIR/files/spgw /etc/init/spgw.conf
-
-  mkdir -p $epc_conf_path
-  cp $openair_path/ETC/spgw.conf $epc_conf_path/spgw.conf
 }
 
 configure_network(){
@@ -160,6 +164,7 @@ source $CHARM_DIR/utils/common
 set_env_paths
 
 open-port 2152/udp
+open-port 2123/udp
 
 branch=`config-get branch`
 revision=`config-get revision`
@@ -174,6 +179,8 @@ configure_network `config-get pgw-eth`
 
 install_packages
 clone_repo
+patch_sources
+
 juju_install_kernel
 
 conigure_hosts
