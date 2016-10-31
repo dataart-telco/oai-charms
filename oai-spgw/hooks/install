@@ -89,8 +89,8 @@ clone_repo(){
         git checkout $branch 
         if [ "$revision" != "head" ]; then 
             git checkout $revision
-        cd -
-        fi 
+            cd -
+        fi
     else
        #Save the current hosts file
        cp -f /etc/hosts /home
@@ -145,17 +145,21 @@ conigure_hosts(){
 }
 
 configure_network(){
-    #allow dhcp
-    local eth=$1
-    local file=/etc/network/interfaces.d/${eth}.cfg
-    cp ./files/eth1_tpl.cfg $file
-    sed -i -e "s/eth1/$eth/g" $file
+  #allow dhcp
+  local eth=$1
+  if [ "$eth" = "eth0" ]; then
+    echo "Ignore interface eth0"
+    return
+  fi
+  local file=/etc/network/interfaces.d/${eth}.cfg
+  cp ./files/eth1_tpl.cfg $file
+  sed -i -e "s/eth1/$eth/g" $file
 
-    #prevent dhcp gateway
-    local hook=/etc/dhcp/dhclient-enter-hooks.d/net-${eth}
-    cp ./files/dhclient_hook_tpl $hook
-    sed -i -e "s/eth1/$eth/g" $hook
-    chmod +x $hook
+  #prevent dhcp gateway
+  local hook=/etc/dhcp/dhclient-enter-hooks.d/net-${eth}
+  cp ./files/dhclient_hook_tpl $hook
+  sed -i -e "s/eth1/$eth/g" $hook
+  chmod +x $hook
 }
 
 set -eux
@@ -176,16 +180,8 @@ status-set maintenance "Fetching and installing Openair4G"
 
 update_hostname
 
-sgw_eth=`config-get sgw-eth`
-pgw_eth=`config-get pgw-eth`
-
-if [ "eth0" != "$sgw_eth" ]; then
-    configure_network $sgw_eth
-fi
-
-if [ "eth0" != "$pgw_eth" ]; then
-    configure_network $pgw_eth
-fi
+configure_network `config-get sgw-eth`
+configure_network `config-get pgw-eth`
 
 install_packages
 

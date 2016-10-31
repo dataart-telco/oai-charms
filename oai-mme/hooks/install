@@ -85,12 +85,13 @@ clone_repo(){
     if [ -d "$openair_path"  ]; then
         juju-log "Updating the installation directory"
         cd $openair_path 
+        git fetch --all
+        git reset --hard origin/master
         git checkout $branch 
-        git pull 
         if [ "$revision" != "head" ]; then 
-        git checkout $revision
-        cd -
-        fi 
+            git checkout $revision
+            cd -
+        fi
     else
        #Save the current hosts file
        cp -f /etc/hosts /home
@@ -99,7 +100,7 @@ clone_repo(){
        if [ "$revision" != "head" ]; then 
            git checkout $revision
            cd -
-       fi 
+       fi   
     fi
 
     #We don't need phpmyadmin in the installation as it is provided by phpmyadmin charm
@@ -145,6 +146,10 @@ configure_mme(){
 configure_network(){
     #allow dhcp
     local eth=$1
+    if [ "$eth" = "eth0" ]; then
+        echo "Ignore interface eth0"
+        return
+    fi
     local file=/etc/network/interfaces.d/${eth}.cfg
     cp ./files/eth1_tpl.cfg $file
     sed -i -e "s/eth1/$eth/g" $file
