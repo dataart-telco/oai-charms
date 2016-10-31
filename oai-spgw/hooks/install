@@ -84,10 +84,11 @@ clone_repo(){
     if [ -d "$openair_path"  ]; then
         juju-log "Updating the installation directory"
         cd $openair_path 
+        git fetch --all
+        git reset --hard origin/master
         git checkout $branch 
-        git pull 
         if [ "$revision" != "head" ]; then 
-        git checkout $revision
+            git checkout $revision
         cd -
         fi 
     else
@@ -146,9 +147,6 @@ conigure_hosts(){
 configure_network(){
     #allow dhcp
     local eth=$1
-    if [ "$eth" = "eth0" ]; then
-      return
-    fi
     local file=/etc/network/interfaces.d/${eth}.cfg
     cp ./files/eth1_tpl.cfg $file
     sed -i -e "s/eth1/$eth/g" $file
@@ -177,13 +175,22 @@ echo "$revision" > $CHARM_DIR/.revision
 status-set maintenance "Fetching and installing Openair4G"
 
 update_hostname
-configure_network `config-get sgw-eth`
-configure_network `config-get pgw-eth`
+
+sgw_eth=`config-get sgw-eth`
+pgw_eth=`config-get pgw-eth`
+
+if [ "eth0" != "$sgw_eth" ]; then
+    configure_network $sgw_eth
+fi
+
+if [ "eth0" != "$pgw_eth" ]; then
+    configure_network $pgw_eth
+fi
 
 install_packages
+
 clone_repo
 patch_sources
-
 juju_install_kernel
 
 conigure_hosts

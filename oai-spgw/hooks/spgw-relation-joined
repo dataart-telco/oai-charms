@@ -42,4 +42,9 @@ relation-set  spgw_hostname=`hostname --fqdn`
 sgw_iface=`config-get sgw-eth`
 sgw_ipv4=`get_eth_ip $sgw_iface`
 
+pgw_iface=`config-get pgw-eth`
+pgw_ipv4=`get_eth_ip $pgw_iface`
+
 relation-set spgw_s11_ipv4=$sgw_ipv4
+relation-set sgw_ipv4=$sgw_ipv4
+relation-set pgw_ipv4=$pgw_ipv4

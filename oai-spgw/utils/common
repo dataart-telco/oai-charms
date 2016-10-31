@@ -81,7 +81,11 @@ check_epc_connection(){
 }
 
 get_eth_ip(){
-  echo `ifconfig $1 | egrep -o "inet addr:[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+" | egrep -o "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+"`
+  echo `ip addr show $1 | grep -o 'inet [0-9]\+\.[0-9]\+\.[0-9]\+\.[0-9]\+' | grep -o [0-9].*`
+}
+
+get_eth_ip_net(){
+  echo `ip addr show $1 | grep -o 'inet [0-9]\+\.[0-9]\+\.[0-9]\+\.[0-9]\+/[0-9]\+' | grep -o [0-9].*`
 }
 
 user_conf(){
@@ -93,18 +97,18 @@ user_conf(){
 
   juju-log "Setting up network configuration in the epc.conf file"
 
-  sgw_ipv4=`get_eth_ip $sgw_iface`
-  pgw_ipv4=`get_eth_ip $pgw_iface`
+  sgw_ipv4=`get_eth_ip_net $sgw_iface`
+  pgw_ipv4=`get_eth_ip_net $pgw_iface`
 
   #INTERFACES
   sed -r -i "/SGW_INTERFACE_NAME_FOR_S11/ s/\".*\";/\"$sgw_iface\";/" $epc_conf_path/spgw.conf
-  sed -r -i "/SGW_IPV4_ADDRESS_FOR_S11/ s-\".*\";-\"$sgw_ipv4/24\";-" $epc_conf_path/spgw.conf
+  sed -r -i "/SGW_IPV4_ADDRESS_FOR_S11/ s-\".*\";-\"$sgw_ipv4\";-" $epc_conf_path/spgw.conf
 
   sed -r -i "/SGW_INTERFACE_NAME_FOR_S1U_S12_S4_UP/ s/\".*\";/\"$sgw_iface\";/" $epc_conf_path/spgw.conf
-  sed -r -i "/SGW_IPV4_ADDRESS_FOR_S1U_S12_S4_UP/ s-\".*\";-\"$sgw_ipv4/24\";-" $epc_conf_path/spgw.conf
+  sed -r -i "/SGW_IPV4_ADDRESS_FOR_S1U_S12_S4_UP/ s-\".*\";-\"$sgw_ipv4\";-" $epc_conf_path/spgw.conf
 
   sed -r -i "/PGW_INTERFACE_NAME_FOR_SGI/ s/\".*\"/\"$pgw_iface\"/" $epc_conf_path/spgw.conf
-  sed -r -i "/PGW_IPV4_ADDRESS_FOR_SGI/ s-\".*\"-\"$pgw_ipv4/24\"-" $epc_conf_path/spgw.conf
+  sed -r -i "/PGW_IPV4_ADDRESS_FOR_SGI/ s-\".*\"-\"$pgw_ipv4\"-" $epc_conf_path/spgw.conf
 
   #DNS
   sed -r -i "/DEFAULT_DNS_IPV4_ADDRESS/ s/\".*\"/\"$DEFAULT_DNS_IPV4_ADDRESS\"/" $epc_conf_path/spgw.conf
