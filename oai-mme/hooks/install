@@ -145,7 +145,7 @@ configure_mme(){
 configure_network(){
     #allow dhcp
     local eth=$1
-    local file=/etc/network/interfaces.d/0${eth}.cfg
+    local file=/etc/network/interfaces.d/${eth}.cfg
     cp ./files/eth1_tpl.cfg $file
     sed -i -e "s/eth1/$eth/g" $file
 
